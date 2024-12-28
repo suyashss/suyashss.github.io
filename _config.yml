@@ -1,0 +1,16 @@
+title: Suyash's Blog
+description: A blog about various topics.
+baseurl: "" # No subpath; your site is at https://suyashss.github.io/
+url: "https://suyashss.github.io" # Your GitHub Pages URL
+
+# Specify the theme to use. 'minima' is a simple, default theme.
+theme: minima
+
+# Permalink Structure
+permalink: /:year/:month/:day/:title.html
+
+# Optional: Enable plugins (GitHub Pages supports a limited set)
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
