@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Train a tiny generative multimodal language model"
+title: "Building a Tiny Vision-Language Model with MNIST"
 date: 2025-01-04
 categories: vision-language-model, multimodal
 ---
