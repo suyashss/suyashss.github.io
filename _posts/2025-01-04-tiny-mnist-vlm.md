@@ -5,10 +5,10 @@ date: 2025-01-04
 categories: vision-language-model, multimodal
 ---
 
-In this post, we will train a tiny multimodal language model that can generate both text and images, also called a vision language model. Vision language models that can operate on both text and image data have shown very good performance on text/image generation, understanding, question-answering, and other tasks. With the larger multimodal (mostly closed-source) models, these capabilites are extended to include audio and video as well. Vision language models can be trained in different ways (see overview in [this review paper](https://arxiv.org/abs/2405.17247)), we will make some simplifying choices for our tiny experiment. Code for the whole implementation is at [https://github.com/suyashss/mnist_vlm](https://github.com/suyashss/mnist_vlm).
+In this post, we will train a tiny multimodal language model that can generate both text and images, also called a vision language model (VLM). VLMs that can operate on both text and image data have shown very good performance on [text/image generation](https://arxiv.org/abs/2204.14198), [image understanding](https://arxiv.org/abs/2304.08485), question-answering, and other tasks. With the larger multimodal (mostly closed-source) models, these capabilites are extended to include audio and video as well. Vision language models can be trained in different ways (see overview in [this review paper](https://arxiv.org/abs/2405.17247)), we will make some simplifying choices for our tiny experiment. Code for the whole implementation is at [https://github.com/suyashss/mnist_vlm](https://github.com/suyashss/mnist_vlm).
 
 ### Design choices
-* Dataset: MNIST - We will use the MNIST dataset of digit images for our experiment. This is a small dataset, and will allow faster iteration. We can also make our model smaller and train it on less powerful GPUs.
+* Dataset: MNIST - We will use the MNIST dataset of digit images for our experiment. This is a small dataset with ~70k images, and will allow faster iteration. We can also keep our model smaller and train it on less powerful GPUs.
 
 * Tasks: Image generation and classification - The "text" information we will use is the digit label for each image. So our model will be capable of two tasks (1) generation: label -> image (2) classification: image -> label.
 
@@ -128,7 +128,7 @@ python ./data/mnist_vlm/prepare.py
 
 </details>
 
-Before we start training, let's look at our image tokens in the text. Each image is now represented as 8-character string containing A-Z. To visualize these, we can create histograms of the letters at each position, and look for patterns. This is only a partial visualization since it looks at each position separately, but could still be informative. Such plots of frequencies from character strings are called [sequence logos](https://en.wikipedia.org/wiki/Sequence_logo) and are commonly used in analysis of DNA sequences. We can use the `logomaker` python package to easily create these plots. The visualization of the images from the first 1,000 lines in the training file for nanoGPT is below.
+Before we start training, let's look at our image tokens in the text. Each image is now represented as 8-character string containing A-Z. To visualize these, we can create histograms of the letters at each position, and look for patterns. This is only a partial visualization since it looks at each position separately, but could still be informative. Such plots of frequencies from character strings are called [sequence logos](https://en.wikipedia.org/wiki/Sequence_logo) and are commonly used in analysis of DNA sequences. We can use the `logomaker` python package to easily create these plots. The visualization of the images from the first 1,000 lines in the training file for nanoGPT is below (the code is in `mnist_vlm_eval.ipynb`).
 
 ![Plot of letter histograms](/assets/images/tiny-mnist-vlm/image_token_plot.png)
 
@@ -141,12 +141,13 @@ We train nanoGPT to predict next tokens from the training sequences. We will nee
 * Sampling at sequence starts - In the original code, the input is assumed to be a single large piece of text, and so training chunks are sampled at random positions in the text. In our setting, training across two sequences doesn't make sense, so we require that each training chunk start a valid sequence start position.
 * Saving intermediate checkpoints - We want to see how model performance changes during training, so we'll save some intermediate checkpoints.
 
-We will use a small model with ~15M parameters, so we can train it on a laptop. The training config I used for my laptop is defined in `config/train_mnist_vlm.py` in my nanoGPT fork. The training reached a train/validation loss of about 0.6 in an hour on my M1 Macbook Air with 8 GB RAM. In a test on Google colab with a T4 GPU, I was able to reach a train/validation loss of about 0.58 in 35 minutes using a larger batch size of 2048.
+We will use a small model with ~15M parameters, so we can train it on a laptop. The training config file I created and used for my laptop is defined in `config/train_mnist_vlm.py` in my nanoGPT fork. The training reached a train/validation loss of about 0.6 in an hour on my M1 Macbook Air with 8 GB RAM. In a test on Google colab with a T4 GPU, I was able to reach a train/validation loss of about 0.58 in 35 minutes using a larger batch size of 2048.
 
 <details>
   <summary>how to run</summary>
 
 {% highlight shell %}
+# Run this from the nanoGPT directory
 python train.py config/train_mnist_vlm.py
 {% endhighlight %}
 
@@ -157,7 +158,7 @@ python train.py config/train_mnist_vlm.py
 To evaluate the model, we will create masked prompts from the held-out test set, and evaluate performance on the classification task and image generation task. For classification, we can use prediction accuracy (proportion of examples where the model predicts the number label correctly). For image generation, we will perform a visual inspection of generated outputs. Code for the evaluation is in `mnist_vlm_eval.ipynb`.
 
 #### Classification evaluation
-Let's check the models prediction accuracy over iterations. We will load checkpoints for various iterations, use those to generate completions for prompts like `image:ABCDEFGH, number:`, and ask the model to predict what number label comes next. We can then compare it to the true number label. The code is shown below. In addition to comparing prediction accuracy, it also computes the standard error of the accuracy estimate, so we can be sure the differences we see across iterations are statistically meaningful.
+Let's check the models prediction accuracy over iterations. We will load checkpoints for various iterations, use those to generate completions for prompts like `image:ABCDEFGH, number:`, and ask the model to predict what number label comes next. We can then compare it to the true number label. The code is shown below. In addition to comparing prediction accuracy, it also computes the standard error of the accuracy estimate, so we can be sure the differences we see across iterations are statistically meaningful. The plot shows the estimate of the prediction accuracy, and its 95% confidence interval (approximated as `[estimate - 1.96*se, estimate + 1.96*se]`).
 
 ```python
 ckpts = [x*500 for x in [1] + list(range(2,11,2))]
@@ -204,4 +205,4 @@ Now, here are the generations from the model at iteration 5000. These look much 
 
 ## Summary
 
-We have now built a tiny (multimodal) vision language model on the MNIST data. Our model can classify images to numbers, as well as draw numbers. To do this, we implemented a VQVAE to tokenize images into a set of discrete tokens, created sequences from our MNIST examples, and trained an autoregressive LLM on this sequence data. In principle, this approach could be applied to any number of modalities to jointly model them in a single autoregressive model, as done by [CM3Leon](https://arxiv.org/abs/2309.02591) and [Chameleon](https://arxiv.org/abs/2405.09818) from Meta. Alternatively, once all modalities are tokenized, one could train a single masked language model on the data, as done by [4M](https://arxiv.org/abs/2312.06647) from Apple.
+We have now built a tiny (multimodal) vision language model on the MNIST data. Our model can classify images to numbers, as well as draw images of numbers. To do this, we implemented a VQVAE to tokenize images into a set of discrete tokens, created sequences from our MNIST examples, and trained an autoregressive LLM on this sequence data. In principle, this approach could be applied to any number of modalities to jointly model them in a single autoregressive model, as done by [CM3Leon](https://arxiv.org/abs/2309.02591) and [Chameleon](https://arxiv.org/abs/2405.09818) from Meta. Alternatively, once all modalities are tokenized, one could train a single masked language model on the data, as done by [4M](https://arxiv.org/abs/2312.06647) from Apple.
