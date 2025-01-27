@@ -68,7 +68,7 @@ python vqvae_train.py
 
 </details>
 
-We can see the clustering of image based on the un-quantized VAE embedding below. The model can separate most digits well, with 4 and 9 being hard to separate (other pairs with overlapping representations are 3 and 5, 7 and 9). Since the LLM will see an approximation to these embeddings as input, it might also face problems separating the same pairs.
+To check if this works, we store the encoding and labels of some batches and visualize them using t-SNE. We can see the clustering of images based on the un-quantized VAE embedding below. The model can separate most digits well, with 4 and 9 being hard to separate (other pairs with overlapping representations are 3 and 5, 7 and 9). Since the LLM will see an approximation to these embeddings as input, it might also face problems separating the same pairs.
 
 ![Plot of t-SNE embedding of the VAE embeddings a validation batch](/assets/images/tiny-mnist-vlm/vqvae_clustering.png)
 
@@ -141,7 +141,7 @@ We train nanoGPT to predict next tokens from the training sequences. We will nee
 * Sampling at sequence starts - In the original code, the input is assumed to be a single large piece of text, and so training chunks are sampled at random positions in the text. In our setting, training across two sequences doesn't make sense, so we require that each training chunk start a valid sequence start position.
 * Saving intermediate checkpoints - We want to see how model performance changes during training, so we'll save some intermediate checkpoints.
 
-We will use a small model with ~15M parameters, so we can train it on a laptop. The training config file I created and used for my laptop is defined in `config/train_mnist_vlm.py` in my nanoGPT fork. The training reached a train/validation loss of about 0.6 in an hour on my M1 Macbook Air with 8 GB RAM. In a test on Google colab with a T4 GPU, I was able to reach a train/validation loss of about 0.58 in 35 minutes using a larger batch size of 2048.
+We will use a small model with ~15M parameters, so we can train it on a laptop. The training config file I created and used for my laptop is defined in `config/train_mnist_vlm.py` in my nanoGPT fork. The training reached a train/validation loss of about 0.6 in an hour on my M1 Macbook Air with 8 GB RAM. In a test on Google colab with a T4 GPU, I was able to reach a train/validation loss of about 0.58 in 35 minutes using a larger batch size of 2048. The WandB training logs for the runs are [here](https://api.wandb.ai/links/suyashss-123test/nkz1mczc)
 
 <details>
   <summary>how to run</summary>
