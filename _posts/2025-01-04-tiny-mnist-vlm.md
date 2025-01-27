@@ -18,7 +18,7 @@ In this post, we will train a tiny multimodal language model that can generate b
 
 ## Implementation
 
-Code for the implementation is at [https://github.com/suyashss/mnist_vlm](https://github.com/suyashss/mnist_vlm). For nanoGPT, I created a fork of Andrei Karpathy's original repo with some modifications (described below), at [https://github.com/suyashss/nanoGPT](https://github.com/suyashss/nanoGPT). 
+Code for the implementation is at [https://github.com/suyashss/mnist_vlm](https://github.com/suyashss/mnist_vlm). For nanoGPT, I created a fork of Andrej Karpathy's original repo with some modifications (described below), at [https://github.com/suyashss/nanoGPT](https://github.com/suyashss/nanoGPT). 
 
 To implement this as you read along, click on the "how to run" buttons like the one below.
 
@@ -206,3 +206,8 @@ Now, here are the generations from the model at iteration 5000. These look much 
 ## Summary
 
 We have now built a tiny (multimodal) vision language model on the MNIST data. Our model can classify images to numbers, as well as draw images of numbers. To do this, we implemented a VQVAE to tokenize images into a set of discrete tokens, created sequences from our MNIST examples, and trained an autoregressive LLM on this sequence data. In principle, this approach could be applied to any number of modalities to jointly model them in a single autoregressive model, as done by [CM3Leon](https://arxiv.org/abs/2309.02591) and [Chameleon](https://arxiv.org/abs/2405.09818) from Meta. Alternatively, once all modalities are tokenized, one could train a single masked language model on the data, as done by [4M](https://arxiv.org/abs/2312.06647) from Apple.
+
+## Acknowledgements and other references
+This project was easy to implement thanks to the very readable and easy-to-modify nanoGPT pipeline from Andrej Karpathy. 
+
+The huggingface [smol-course](https://github.com/huggingface/smol-course) has a section on VLMs that is a good next step up, where we can fine-tune [a 2B param VLM](https://huggingface.co/blog/smolvlm) that they have pre-trained.
