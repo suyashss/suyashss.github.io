@@ -42,8 +42,13 @@ Code for the implementation is at [https://github.com/suyashss/mnist_vlm](https:
   <summary>how to run</summary>
 
 {% highlight shell %}
+# Set up virtual env
+python -m venv ./venv
+source ./venv/bin/activate
+# Clone repo and install packages
 git clone https://github.com/suyashss/mnist_vlm
 cd mnist_vlm
+pip install -r requirements.txt
 git clone https://github.com/suyashss/nanoGPT
 {% endhighlight %}
 
